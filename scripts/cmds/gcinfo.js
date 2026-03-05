@@ -4,9 +4,9 @@ const path = require("path");
 
 module.exports = {
   config: {
-    name: "spygc",
-    aliases: ["spy", "gcinfo"],
-    version: "14.0.5",
+    name: "gcinfo",
+    aliases: ["spy", "spygc", "groupinfo"],
+    version: "15.0.0",
     author: "Milon Hasan",
     countDown: 2,
     role: 0,
@@ -37,7 +37,7 @@ module.exports = {
         const groupList = allThreads.filter(group => group.isGroup);
         if (groupList.length === 0) return message.reply("❌ No groups found in database.");
 
-        let msg = "╭──『 🛰️ 𝗦𝗽𝘆𝗚𝗖 𝗟𝗶𝘀𝘁 』──╮\n\n";
+        let msg = "╭──『 🛰️ 𝗚𝗖 𝗜𝗻𝗳𝗼 𝗟𝗶𝘀𝘁 』──╮\n\n";
         groupList.forEach((group, index) => {
           msg += `${index + 1}. 📦 ${group.name || "Unnamed Group"}\n`;
         });
@@ -78,7 +78,7 @@ async function getGCInfo(api, id, message) {
       });
     }
 
-    const infoMsg = `╭──『 🛰️ 𝗦𝗽𝘆𝗚𝗖 𝗜𝗻𝗳𝗼 』──╮\n\n` +
+    const infoMsg = `╭──『 🛰️ 𝗚𝗖 𝗜𝗻𝗳𝗼 𝗗𝗲𝘁𝗮𝗶𝗹𝘀 』──╮\n\n` +
                     `📝 𝗡𝗮𝗺𝗲: ${info.threadName || "No Name"}\n` +
                     `🆔 𝗜𝗗: ${id}\n\n` +
                     `👥 𝗠𝗲𝗺𝗯𝗲𝗿𝘀: ${info.participantIDs.length}\n` +
@@ -89,7 +89,7 @@ async function getGCInfo(api, id, message) {
                     `🛡️ 𝗔𝗽𝗽𝗿𝗼𝘃𝗮𝗹: ${info.approvalMode ? "✅ 𝗢𝗻" : "❌ 𝗢𝗳𝗳"}\n` +
                     `💬 𝗠𝗲𝘀𝘀𝗮𝗴𝗲𝘀: ${info.messageCount || 0}\n` +
                     `🎨 𝗧𝗵𝗲𝗺𝗲: ${info.threadThemeID || "Default"}\n` +
-                    `😄 𝗘𝗺𝗼𝒋𝗶: ${info.emoji || "👍"}\n\n` +
+                    `😄 𝗘𝗺𝗼𝗷𝗶: ${info.emoji || "👍"}\n\n` +
                     `╰──────────────╯`;
 
     if (info.imageSrc) {
@@ -105,4 +105,4 @@ async function getGCInfo(api, id, message) {
   } catch (e) {
     return message.reply(`❌ Fetching Failed: Info restricted.`);
   }
-}
+                               }
