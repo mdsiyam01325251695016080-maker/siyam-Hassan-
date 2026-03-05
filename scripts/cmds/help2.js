@@ -54,7 +54,7 @@ function findCommand(name) {
 
 module.exports = {
   config: {
-    name: "help",
+    name: "help2",
     aliases: ["menu"],
     version: "2.0",
     author: "Saimx69x | fixed milon",
