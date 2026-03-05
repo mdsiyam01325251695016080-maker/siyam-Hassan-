@@ -20,13 +20,10 @@ module.exports = {
   onReply: async function ({ api, event, Reply, message }) {
     const { body } = event;
     const { groupList } = Reply;
-
-    if (!isNaN(body)) {
+    if (!isNaN(body) && groupList) {
       const inputNumber = parseInt(body);
       const targetIndex = inputNumber - 1;
-
       if (inputNumber <= 0 || !groupList[targetIndex]) return;
-
       const targetID = groupList[targetIndex].threadID;
       return await getGCInfo(api, targetID, message);
     }
@@ -34,12 +31,10 @@ module.exports = {
 
   onStart: async function ({ api, event, args, message }) {
     const { threadID } = event;
-
     try {
       if (args[0] === "list") {
         const allThreads = await api.getThreadList(500, null, ["INBOX"]);
         const groupList = allThreads.filter(group => group.isGroup);
-
         if (groupList.length === 0) return message.reply("❌ No groups found in database.");
 
         let msg = "╭──『 🛰️ 𝗦𝗽𝘆𝗚𝗖 𝗟𝗶𝘀𝘁 』──╮\n\n";
@@ -57,9 +52,7 @@ module.exports = {
           });
         });
       }
-
       return await getGCInfo(api, threadID, message);
-
     } catch (err) {
       return message.reply(`❌ Error: ${err.message}`);
     }
@@ -77,14 +70,12 @@ module.exports = {
 async function getGCInfo(api, id, message) {
   try {
     const info = await api.getThreadInfo(id);
-    
-    // Fast Gender Counting logic optimized
     let male = 0, female = 0;
     if (info.userInfo) {
-        info.userInfo.forEach(user => {
-          if (user.gender === "MALE") male++;
-          else if (user.gender === "FEMALE") female++;
-        });
+      info.userInfo.forEach(user => {
+        if (user.gender === "MALE") male++;
+        else if (user.gender === "FEMALE") female++;
+      });
     }
 
     const infoMsg = `╭──『 🛰️ 𝗦𝗽𝘆𝗚𝗖 𝗜𝗻𝗳𝗼 』──╮\n\n` +
@@ -98,28 +89,20 @@ async function getGCInfo(api, id, message) {
                     `🛡️ 𝗔𝗽𝗽𝗿𝗼𝘃𝗮𝗹: ${info.approvalMode ? "✅ 𝗢𝗻" : "❌ 𝗢𝗳𝗳"}\n` +
                     `💬 𝗠𝗲𝘀𝘀𝗮𝗴𝗲𝘀: ${info.messageCount || 0}\n` +
                     `🎨 𝗧𝗵𝗲𝗺𝗲: ${info.threadThemeID || "Default"}\n` +
-                    `😄 𝗘𝗺𝗼𝗷𝗶: ${info.emoji || "🌚"}\n\n` +
+                    `😄 𝗘𝗺𝗼𝒋𝗶: ${info.emoji || "👍"}\n\n` +
                     `╰──────────────╯`;
 
     if (info.imageSrc) {
-      const cachePath = path.join(__dirname, 'cache', `spy_${id}.png`);
-      fs.ensureDirSync(path.join(__dirname, 'cache'));
-
       const response = await axios({
         url: info.imageSrc,
         method: 'GET',
         responseType: 'stream'
       });
-
-      return message.reply({
-        body: infoMsg,
-        attachment: response.data
-      });
+      return message.reply({ body: infoMsg, attachment: response.data });
     } else {
       return message.reply(infoMsg);
     }
   } catch (e) {
-    console.error(e);
-    return message.reply(`❌ Fetching Failed: This group info is restricted or unavailable.`);
+    return message.reply(`❌ Fetching Failed: Info restricted.`);
   }
 }
