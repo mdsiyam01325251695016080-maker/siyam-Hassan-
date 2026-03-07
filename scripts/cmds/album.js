@@ -1,152 +1,120 @@
 const axios = require("axios");
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
-const FormData = require("form-data");
 
 module.exports = {
   config: {
     name: "album",
-    aliases: ["al"],
-    version: "5.1.0",
-    author: "Azadx69x",
-    countDown: 2,
+    aliases: ["list", "vidlist"],
+    version: "9.1.0",
+    author: "Milon",
+    countDown: 5,
     role: 0,
-    shortDescription: "𝐀𝐥𝐛𝐮𝐦 𝐕𝐢𝐝𝐞𝐨 Random",
-    longDescription: "Random album videos",
-    category: "media"
+    category: "media",
+    shortDescription: { en: "Multi-page video album for Milon" },
+    guide: { en: "{pn} | {pn} 2 | {pn} 3 | Reply video: {pn} add <category>" }
   },
 
-  albumSystem: new Map(),
-  albumBaseUrl: null,
-  videoQueue: new Map(),
-  
-  async loadAlbumBaseUrl() {
-    if (this.albumBaseUrl) return;
-    try {
-      const res = await axios.get(
-        "https://raw.githubusercontent.com/ncazad/Azad69x/refs/heads/main/baseApiUrl.json"
-      );
-      this.albumBaseUrl = res.data.album.replace(/\/$/, "");
-      console.log("Album API base URL loaded:", this.albumBaseUrl);
-    } catch (e) {
-      console.error("Failed to load album base URL:", e.message);
-      this.albumBaseUrl = null;
-    }
-  },
-  
-  async fetchAlbumVideo(category) {
-    await this.loadAlbumBaseUrl();
-    if (!this.albumBaseUrl) return null;
-    
-    if (!this.videoQueue.has(category) || this.videoQueue.get(category).length === 0) {
-      try {
-        const res = await axios.get(`${this.albumBaseUrl}/api/album?category=${encodeURIComponent(category)}`);
-        let videos = [];
-        if (res.data?.url) videos.push(res.data.url);
-        if (res.data?.videos?.length) videos = videos.concat(res.data.videos);
+  onStart: async function ({ api, event, args }) {
+    const { threadID, messageID, messageReply, senderID } = event;
+    const pathData = path.join(process.cwd(), "scripts", "cmds", "album_data.json");
 
-        if (!videos.length) return null;
+    const allowedCategories = [
+      "milon", "sad", "love", "broken", "alone", "romantic",
+      "hot", "sex", "couple", "crush", "relationship",
+      "funny", "meme", "troll", "prank", "gaming",
+      "pubg", "freefire", "gamer", "anime", "animegirl",
+      "animeboy", "nature", "sunset", "rain", "aesthetic"
+    ];
 
-        videos = this.shuffleArray(videos);
-        this.videoQueue.set(category, videos);
-      } catch (e) {
-        console.error(`Failed to fetch video for ${category}:`, e.message);
-        return null;
+    // --- ADD VIDEO SECTION ---
+    if (args[0] === "add") {
+      if (senderID != "61586540721576") return api.sendMessage("❌ | Only Milon can add videos!", threadID, messageID);
+      
+      const category = args[1]?.toLowerCase();
+      if (!allowedCategories.includes(category)) {
+        return api.sendMessage(`❌ | Invalid Category! Allowed:\n\n${allowedCategories.join(", ")}`, threadID, messageID);
       }
+
+      if (!messageReply || !messageReply.attachments || messageReply.attachments[0].type !== "video") {
+        return api.sendMessage("❌ | Boss, please reply to a video to save it!", threadID, messageID);
+      }
+
+      const videoUrl = messageReply.attachments[0].url;
+      if (!fs.existsSync(pathData)) fs.writeJsonSync(pathData, {});
+      let data = fs.readJsonSync(pathData);
+      if (!data[category]) data[category] = [];
+      data[category].push(videoUrl);
+      fs.writeJsonSync(pathData, data);
+      
+      return api.sendMessage(`✅ | Video saved to '${category.toUpperCase()}' list!`, threadID, messageID);
     }
 
-    const queue = this.videoQueue.get(category);
-    const videoUrl = queue.shift();
-    this.videoQueue.set(category, queue);
-    return videoUrl;
-  },
-  
-  shuffleArray(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  },
-  
-  async uploadToCatbox(videoPath) {
-    const form = new FormData();
-    form.append("reqtype", "fileupload");
-    form.append("fileToUpload", fs.createReadStream(videoPath));
-
-    const res = await axios.post("https://catbox.moe/user/api.php", form, { headers: form.getHeaders() });
-    fs.unlinkSync(videoPath);
-    return res.data.trim();
-  },
-  
-  onStart: async function ({ message, event, args }) {
-    const displayNames = [
-      "𝐀𝐙𝐀𝐃𝐗69𝐗𝐅𝐅 🐼","𝐀𝐧𝐢𝐦𝐞 💫","𝐀𝐨𝐓 ⚡","𝐀𝐭𝐭𝐢𝐭𝐮𝐝𝐞 😼",
-      "𝐁𝐚𝐛𝐲 👶","𝐂𝐚𝐭 🐈","𝐂𝐨𝐮𝐩𝐥𝐞 💑","𝐃𝐫𝐚𝐠𝐨𝐧𝐁𝐚𝐥𝐥 🐉",
-      "𝐅𝐥𝐨𝐰𝐞𝐫 🌺","𝐅𝐨𝐨𝐭𝐛𝐚𝐥𝐥 ⚽","𝐅𝐫𝐞𝐞𝐅𝐢𝐫𝐞 🔥","𝐅𝐫𝐢𝐞𝐧𝐝𝐬 🫂",
-      "𝐅𝐮𝐧𝐧𝐲 🤣","𝐇𝐨𝐫𝐧𝐲 💦","𝐇𝐨𝐭 🥵","𝐈𝐬𝐥𝐚𝐦𝐢𝐜 😊",
-      "𝐋𝐨𝐅𝐈 🎶","𝐋𝐨𝐯𝐞 💝","𝐋𝐲𝐫𝐢𝐜𝐬 🎵","𝐒𝐚𝐝 😿"
-    ];
-
-    const realCategories = [
-      "Azadx69xff","anime","aot","attitude","baby","cat","couple","dragonball",
-      "flower","football","freefire","friends","funny","horny","hot","islamic",
-      "lofi","love","lyrics","sad"
-    ];
-    
-    if (args[0] && args[0].toLowerCase() === "add" && args[1]) {
-      const cat = args[1].toLowerCase();
-      if (!realCategories.includes(cat)) return message.reply("❌ Invalid category name.");
-
-      if (!this.albumSystem.has(event.senderID)) this.albumSystem.set(event.senderID, []);
-      this.albumSystem.get(event.senderID).push(cat);
-
-      return message.reply(`✅ Album category "${cat}" added to your list.`);
-    }
-    
-    const itemsPerPage = 10;
+    // --- MULTI-PAGE MENU ---
     const page = parseInt(args[0]) || 1;
-    const totalPages = Math.ceil(displayNames.length / itemsPerPage);
-    if (page < 1 || page > totalPages) return message.reply("❌ Invalid page");
+    let listMsg = "";
 
-    const startIndex = (page - 1) * itemsPerPage;
-    const categoriesToShow = displayNames.slice(startIndex, startIndex + itemsPerPage);
+    if (page === 1) {
+      listMsg = `╭─❍ 𝐀𝐋𝐁𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐋𝐈𝐒𝐓 ❍─╮\n\n✦ 1. 𝐌𝐈𝐋𝐎𝐍 🐼\n✦ 2. 𝐒𝐚𝐝 💔\n✦ 3. 𝐋𝐨𝐯𝐞 ❤️\n✦ 4. 𝐁𝐫𝐨𝐤𝐞𝐧 🥀\n✦ 5. 𝐀𝐥𝐨𝐧𝐞 😔\n✦ 6. 𝐑𝐨𝐦𝐚𝐧𝐭𝐢𝐜 💕\n✦ 7. 𝐇𝐨𝐭 🔥\n✦ 8. 𝐒𝐞𝐱 💋\n✦ 9. 𝐂𝐨𝐮𝐩𝐥𝐞 😘\n✦ 10. 𝐂𝐫𝐮𝐬𝐡 😍\n\n╰──❍ 𝐏𝐚𝐠𝐞 : 1/3 ❍──╯\n💬 Reply number or type '.album 2'`;
+    } else if (page === 2) {
+      listMsg = `╭─❍ 𝐀𝐋𝐁𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐋𝐈𝐒𝐓 ❍─╮\n\n✦ 11. 𝐑𝐞𝐥𝐚𝐭𝐢𝐨𝐧𝐬𝐡𝐢𝐩 💞\n✦ 12. 𝐅𝐮𝐧𝐧𝐲 😂\n✦ 13. 𝐌𝐞𝐦𝐞 🤣\n✦ 14. 𝐓𝐫𝐨𝐥𝐥 😈\n✦ 15. 𝐏𝐫𝐚𝐧𝐤 🎭\n✦ 16. 𝐆𝐚𝐦𝐢𝐧𝐠 🎮\n✦ 17. 𝐏𝐮𝐛𝐠 🔫\n✦ 18. 𝐅𝐫𝐞𝐞𝐟𝐢𝐫𝐞 🔥\n✦ 19. 𝐆𝐚𝐦𝐞𝐫 🕹️\n✦ 20. 𝐀𝐧𝐢𝐦𝐞 🌸\n\n╰──❍ 𝐏𝐚𝐠𝐞 : 2/3 ❍──╯\n💬 Reply number or type '.album 3'`;
+    } else {
+      listMsg = `╭─❍ 𝐀𝐋𝐁𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐋𝐈𝐒𝐓 ❍─╮\n\n✦ 21. 𝐀𝐧𝐢𝐦𝐞𝐠𝐢𝐫𝐥 👧\n✦ 22. 𝐀𝐧𝐢𝐦𝐞𝐛𝐨𝐲 👦\n✦ 23. 𝐍𝐚𝐭𝐮𝐫𝐞 🌿\n✦ 24. 𝐒𝐮𝐧𝐬𝐞𝐭 🌅\n✦ 25. 𝐑𝐚𝐢𝐧 🌧️\n✦ 26. 𝐀𝐞𝐬𝐭𝐡𝐞𝐭𝐢𝐜 ✨\n\n╰──❍ 𝐏𝐚𝐠𝐞 : 3/3 ❍──╯\n💬 Reply number or type '.album 1'`;
+    }
 
-    let text = "╭─❍𝐀𝐋𝐁𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 𝐋𝐈𝐒𝐓❍─╮\n\n";
-    categoriesToShow.forEach((cat, i) => text += `✦ ${i + 1}. ${cat}\n`);
-    text += `\n╰─❍ 𝐏𝐚𝐠𝐞 : ${page}/${totalPages} ❍─╯\n`;
-    text += "💬 𝐑𝐞𝐩𝐥𝐲 𝐚 𝐧𝐮𝐦𝐛𝐞𝐫 𝐭𝐨 𝐠𝐞𝐭 𝐚 𝐯𝐢𝐝𝐞𝐨 🐱";
-
-    const sent = await message.reply(text);
-
-    global.GoatBot.onReply.set(sent.messageID, {
-      commandName: "album",
-      author: event.senderID,
-      pageCategories: categoriesToShow.map((_, i) => realCategories[startIndex + i]),
-      pageDisplayNames: categoriesToShow,
-      messageID: sent.messageID
-    });
+    return api.sendMessage(listMsg, threadID, (err, info) => {
+      global.GoatBot.onReply.set(info.messageID, {
+        commandName: this.config.name,
+        messageID: info.messageID,
+        author: event.senderID
+      });
+    }, messageID);
   },
-  
-  onReply: async function ({ message, event, Reply }) {
-    if (event.senderID !== Reply.author) return;
-    
-    const num = parseInt(event.body);
-    if (isNaN(num)) return;
 
-    const index = num - 1;
-    const category = Reply.pageCategories[index];
-    const displayName = Reply.pageDisplayNames[index];
-    if (!category) return message.reply("❌ Invalid number");
+  onReply: async function ({ api, event, Reply }) {
+    const { threadID, messageID, body, senderID } = event;
+    if (senderID !== Reply.author) return;
 
-    const videoUrl = await this.fetchAlbumVideo(category);
-    if (!videoUrl) return message.reply(`❌ No videos found for ${displayName}`);
+    const categories = {
+      "1": "milon", "2": "sad", "3": "love", "4": "broken", "5": "alone", "6": "romantic",
+      "7": "hot", "8": "sex", "9": "couple", "10": "crush", "11": "relationship",
+      "12": "funny", "13": "meme", "14": "troll", "15": "prank", "16": "gaming",
+      "17": "pubg", "18": "freefire", "19": "gamer", "20": "anime", "21": "animegirl",
+      "22": "animeboy", "23": "nature", "24": "sunset", "25": "rain", "26": "aesthetic"
+    };
 
-    try { await message.unsend(Reply.messageID); } catch(e){}
+    const selected = categories[body];
+    if (!selected) return;
 
-    await message.reply({
-      body: `✨ 𝐀𝐋𝐁𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 🌸\n\n📁 𝐂𝐚𝐭𝐞𝐠𝐨𝐫𝐲 : ${displayName}\n\n🐸 𝐄𝐧𝐣𝐨𝐲 𝐘𝐨𝐮𝐫 𝐕𝐢𝐝𝐞𝐨 🖤`,
-      attachment: await global.utils.getStreamFromURL(videoUrl)
-    });
+    api.unsendMessage(Reply.messageID);
+    api.sendMessage(`⏳ | Loading '${selected.toUpperCase()}' video for you, Milon...`, threadID, messageID);
+
+    try {
+      const pathData = path.join(process.cwd(), "scripts", "cmds", "album_data.json");
+      let videoUrl = "";
+
+      if (fs.existsSync(pathData)) {
+        const localData = fs.readJsonSync(pathData);
+        if (localData[selected] && localData[selected].length > 0) {
+          videoUrl = localData[selected][Math.floor(Math.random() * localData[selected].length)];
+        }
+      }
+
+      if (!videoUrl) {
+        const res = await axios.get(`https://raw.githubusercontent.com/Milon-Hasan/API-STORE/main/albums/${selected}.json`);
+        videoUrl = res.data[Math.floor(Math.random() * res.data.length)];
+      }
+
+      const cachePath = path.join(__dirname, "cache", `vid_${Date.now()}.mp4`);
+      const vidRes = await axios.get(videoUrl, { responseType: "arraybuffer" });
+      fs.writeFileSync(cachePath, Buffer.from(vidRes.data, "utf-8"));
+
+      return api.sendMessage({
+        body: `✨ 𝐀𝐋𝐁𝐔𝐌 𝐕𝐈𝐃𝐄𝐎 🌸\n\n📁 𝐂𝐚𝐭𝐞𝐠𝐨𝐫𝐲 : ${selected.toUpperCase()} 🐼\n\n🐸 𝐄𝐧𝐣𝐨𝐲 𝐘𝐨𝐮𝐫 𝐕𝐢𝐝𝐞𝐨 🖤`,
+        attachment: fs.createReadStream(cachePath)
+      }, threadID, () => fs.unlinkSync(cachePath), messageID);
+    } catch (e) {
+      return api.sendMessage("❌ | Error: Video link expired or API down!", threadID, messageID);
+    }
   }
 };
