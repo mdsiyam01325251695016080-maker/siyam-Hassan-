@@ -1,76 +1,104 @@
+const fs = require("fs-extra");
+const axios = require("axios");
+const path = require("path");
+const { getPrefix } = global.utils;
+const { commands, aliases } = global.GoatBot;
+
 module.exports = {
   config: {
     name: "help2",
-    version: "2.2.0",
-    author: "Milon Hasan",
+    version: "1.18",
+    author: "UDAY HASAN SIYAM",
     countDown: 5,
     role: 0,
-    shortDescription: { en: "Displays all available commands" },
-    category: "system",
-    guide: { en: "{pn} or {pn} <command_name>" }
+    shortDescription: { en: "View command usage and list all commands directly" },
+    longDescription: { en: "View command usage and list all commands directly" },
+    category: "info",
+    guide: { en: "{pn} / help cmdName" },
+    priority: 1,
   },
 
-/* ---------------------------------------------------------
- * [ 🔐 INTERNAL_SECURE_METADATA_DO_NOT_MODIFY ]
- * DEVELOPER: MILON HASAN (CEO @ MILON BOT APP)
- * STATUS: AUTHOR DISPLAY FIXED | UI: ENGLISH
- * --------------------------------------------------------- */
+  onStart: async function ({ message, args, event, threadsData, role }) {
+    const { threadID } = event;
+    const prefix = getPrefix(threadID);
 
-  onStart: async function ({ api, event, args }) {
-    const { threadID, messageID } = event;
-    
-    // Auto-detect the command list
-    const cmdList = global.client?.commands || global.commands || global.GoatBot?.commands;
+    // New media links
+    const mediaLinks = [
+      "https://files.catbox.moe/fiy6vj.gif",
+      "https://files.catbox.moe/a13udh.jpg",
+      "https://files.catbox.moe/41hfau.jpg"
+    ];
 
-    if (!cmdList) {
-      return api.sendMessage("❌ Error: Command database not found.", threadID, messageID);
-    }
+    if (!args[0]) {
+      // Group commands by category (use second file's design)
+      const categories = {};
 
-    const allCommands = Array.from(cmdList.values());
-
-    // 1. Details for a specific command (Now includes Author)
-    if (args[0]) {
-      const commandName = args[0].toLowerCase();
-      const command = cmdList.get(commandName);
-
-      if (!command) {
-        return api.sendMessage(`❌ Error: Command "${commandName}" not found.`, threadID, messageID);
+      for (const [name, value] of commands) {
+        if (!value.config || value.config.role > role) continue;
+        const category = (value.config.category || "UNCATEGORIZED").toUpperCase();
+        if (!categories[category]) categories[category] = [];
+        categories[category].push(name);
       }
 
-      const { config } = command;
-      let detailMsg = `🔎 [ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗗𝗘𝗧𝗔𝗜𝗟𝗦 ]\n`;
-      detailMsg += `━━━━━━━━━━━━━━━━━━\n`;
-      detailMsg += `👤 Name   : ${config.name}\n`;
-      detailMsg += `✍️ Author : ${config.author || "Unknown"}\n`; // Added Author Here
-      detailMsg += `📂 Category : ${config.category.toUpperCase()}\n`;
-      detailMsg += `📝 Desc   : ${config.shortDescription?.en || "No description."}\n`;
-      detailMsg += `📖 Usage  : ${config.guide?.en || "No guide available."}\n`;
-      detailMsg += `━━━━━━━━━━━━━━━━━━`;
+      let msg = `╭───────❁\n│✨ 𝗨𝗗𝗔𝗬 𝗛𝗔𝗦𝗔𝗡 𝗦𝗜𝗬𝗔𝗠 𝗛𝗘𝗟𝗣 𝗟𝗜𝗦𝗧 ✨\n╰────────────❁\n`;
 
-      return api.sendMessage(detailMsg, threadID, messageID);
+      for (const cat of Object.keys(categories).sort()) {
+        msg += `╭─────✰『  🗂️ ${cat} 』\n`;
+        for (const c of categories[cat].sort()) {
+          msg += `│⚡ ${c}\n`;
+        }
+        msg += `╰────────────✰\n`;
+      }
+
+      const totalCommands = Object.values(categories).reduce((a, b) => a + b.length, 0);
+      msg += `╭─────✰[🌟 𝐄𝐍𝐉𝐎𝐘 🌟]\n│> TOTAL COMMANDS: [${totalCommands}]\n│\n│> TYPE: [ ${prefix}HELP <COMMAND> ]\n│\n│> FB.LINK: [https://www.facebook.com/MR.FARHAN.420]\n╰────────────✰\n`;
+      msg += `\n╭─────✰\n│ 💖 𝗨𝗗𝗔𝗬 𝗛𝗔𝗦𝗔𝗡 𝗦𝗜𝗬𝗔𝗠 💖\n╰────────────✰`; 
+
+      const mediaLink = mediaLinks[Math.floor(Math.random() * mediaLinks.length)];
+      const stream = await axios.get(mediaLink, { responseType: "stream" }).then(res => res.data);
+
+      return message.reply({
+        body: msg,
+        attachment: stream
+      });
+
+    } else {
+      // Specific command info
+      const commandName = args[0].toLowerCase();
+      const command = commands.get(commandName) || commands.get(aliases.get(commandName));
+
+      if (!command) return message.reply(`Command "${commandName}" not found.`);
+
+      const configCommand = command.config;
+      const roleText = roleTextToString(configCommand.role);
+      const author = "UDAY HASAN SIYAM";
+      const longDescription = configCommand.longDescription?.en || "No description";
+      const guideBody = configCommand.guide?.en || "No guide available.";
+      const usage = guideBody.replace(/{p}/g, prefix).replace(/{n}/g, configCommand.name);
+
+      const response = `
+╭───⊙
+│ 🔹 Command: ${configCommand.name}
+├── INFO
+│ 📝 Description: ${longDescription}
+│ 👑 Author: ${author}
+│ ⚙ Guide: ${usage}
+├── USAGE
+│ 🔯 Version: ${configCommand.version || "1.0"}
+│ ♻ Role: ${roleText}
+╰────────────⊙`;
+
+      return message.reply(response);
     }
-
-    // 2. Main Help Menu (List by Category)
-    const categorized = {};
-    allCommands.forEach(cmd => {
-      const cat = cmd.config.category || "General";
-      if (!categorized[cat]) categorized[cat] = [];
-      categorized[cat].push(cmd.config.name);
-    });
-
-    let helpMsg = `🌟 [ 𝗠𝗜𝗟𝗢𝗡 𝗕𝗢𝗧 𝗠𝗘𝗡𝗨 ] 🌟\n`;
-    helpMsg += `━━━━━━━━━━━━━━━━━━\n\n`;
-
-    for (const category in categorized) {
-      helpMsg += `📁 [ ${category.toUpperCase()} ]\n`;
-      helpMsg += `» ${categorized[category].join(", ")}\n\n`;
-    }
-
-    helpMsg += `━━━━━━━━━━━━━━━━━━\n`;
-    helpMsg += `📊 Total Commands: ${allCommands.length}\n`;
-    helpMsg += `💡 Type "help2 <name>" for details.\n`;
-    helpMsg += `👑 Owner: Milon Hasan`;
-
-    return api.sendMessage(helpMsg, threadID, messageID);
-  }
+  },
 };
+
+// Helper function to convert role number to string
+function roleTextToString(roleText) {
+  switch (roleText) {
+    case 0: return "0 (All users)";
+    case 1: return "1 (Group administrators)";
+    case 2: return "2 (Admin bot)";
+    default: return "Unknown role";
+  }
+  }
