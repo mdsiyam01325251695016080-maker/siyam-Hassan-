@@ -3,8 +3,8 @@ const moment = require("moment-timezone");
 module.exports = {
   config: {
     name: "info",
-    version: "2.5.3",
-    author: "ST | Sheikh Tamim",
+    version: "3.0.1",
+    author: "Customized by Siyam",
     role: 0,
     countDown: 20,
     shortDescription: {
@@ -21,22 +21,7 @@ module.exports = {
 
   onStart: async function ({ message }) {
 
-    const ownerName = "STARBOY Milon";
-    const ownerAge = "N/A";
-    const ownerFB = "https://www.facebook.com/share/17uGq8qVZ9/";
-    const ownerNumber = "+88019XXXXXXX";
-    const status = "Active";
-
-    const botName = global.GoatBot?.config?.nickNameBot || "GoatBot";
-    const prefix = global.GoatBot?.config?.prefix || "/";
-
-    // 🧠 TOTAL COMMANDS
     const totalCommands = global.GoatBot?.commands?.size || 0;
-
-    const images = [
-      "https://files.catbox.moe/i7ehq1.mp4"
-    ];
-    const image = images[Math.floor(Math.random() * images.length)];
 
     const now = moment().tz("Asia/Dhaka");
     const date = now.format("MMMM Do YYYY");
@@ -49,26 +34,58 @@ module.exports = {
     const seconds = Math.floor(uptime % 60);
     const uptimeString = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 
+    const videoLink = "https://files.catbox.moe/k3bmau.mp4";
+
     return message.reply({
       body: `
-╔═《 ✨ 𝗢𝗪𝗡𝗘𝗥 & 𝗕𝗢𝗧 𝗜𝗡𝗙𝗢 ✨ 》═╗
+⋆✦⋆⎯⎯⎯⎯⎯⎯⎯⎯⎯⋆✦⋆
+╭•┄┅══❁🌺❁══┅┄•╮
+•—»✨𝗢𝗪𝗡𝗘𝗥 𝗜𝗡𝗙𝗢✨«—•
+╰•┄┅══❁🌺❁══┅┄•╯
+⋆✦⋆⎯⎯⎯⎯⎯⎯⎯⎯⎯⋆✦⋆
 
-⭓ 🤖 𝗕𝗼𝘁 𝗡𝗮𝗺𝗲   : 『 𝗠𝗜𝗟𝗢𝗡 𝗕𝗢𝗧 』
-⭓ ☄️ 𝗣𝗿𝗲𝗳𝗶𝘅      : 『. 』
-⭓ 🧠 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀    : 『 ${totalCommands} 』
-⭓ ⚡ 𝗨𝗽𝘁𝗶𝗺𝗲      : 『 ${uptimeString} 』
-⭓ 🗓️ 𝗗𝗮𝘁𝗲        : 『 ${date} 』
-⭓ ⏰ 𝗧𝗶𝗺𝗲        : 『 ${time} 』
+╔══════════════════╗
+║[𝗢𝗪𝗡𝗘𝗥:-[𝗨𝗗𝗔𝗬 𝗛𝗢𝗦𝗦𝗘𝗜𝗡 𝗦𝗜𝗬𝗔𝗠]] 
+║🤖>𝗕𝗢𝗧-𝗡𝗔𝗠𝗘:-[>𝑺𝒊𝒚𝒂𝒎 𝑪𝒉𝒂𝒕 𝑩𝒐𝒕<]
+╠══════════════════╣
+║♻️>𝗥𝗲𝗹𝗶𝗴𝗶𝗼𝗻:- [>𝗜𝘀𝗹𝗮𝗺<]
+║📝>𝗔𝗴𝗲:-  [>16<]
+║🚻>𝗚𝗲𝗻𝗱𝗲𝗿:-  [>𝗠𝗮𝗹𝗲<]
+╠══════════════════╣
+║🌐>𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸:-↓
+║https://www.facebook.com/profile.php?id=61568411310748
+║→UDAY.HOSSEIN.SIYAM
+║💬>𝗠𝗲𝘀𝘀𝗲𝗻𝗴𝗲𝗿:-↓
+║ m.me/UDAY.HOSSEIN.SIYAM
+║📞>𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽:-↓
+║ wa.me/+8801789138157
+╠══════════════════╣
+║⚡>𝗣𝗿𝗲𝗳𝗶𝘅:-『 / 』
+║📦>𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀:-『 ${totalCommands} 』
+║🚀>𝗣𝗶𝗻𝗴:- N/A
+╠══════════════════╣
+║⏳>𝗨𝗽𝘁𝗶𝗺𝗲:- ${uptimeString}
+║🕒>𝗧𝗶𝗺𝗲:-『 ${time} 』
+║🗓>𝗗𝗮𝘁𝗲:-『 ${date} 』
+╠══════════════════╣
+║🏠>𝐀𝐃𝐃𝐑𝐄𝐒𝐒:-[𝐊𝐈𝐒𝐇𝐎𝐑𝐆𝐎𝐍𝐉]
+║             [𝐁𝐀𝐍𝐆𝐋𝐀𝐃𝐄𝐒𝐇]
+║📚>𝗦𝗖𝗛𝗢𝗢𝗟:-[>𝗠 𝗔 𝗠𝗔𝗡𝗡𝗔𝗡 𝗠𝗔𝗡𝗜𝗞 𝗛𝗜𝗚𝗛 𝗦𝗖𝗛𝗢𝗢𝗟<]
+║👩‍❤️‍👨>𝐑𝐄𝐋𝐀𝐓𝐈𝐎𝐍𝐒𝐇𝐈𝐏:-[>𝗦𝗜𝗡𝗚𝗟𝗘<]
+║🧑‍🔧>𝐖𝐎𝐑𝐊:- [>𝗡𝗢𝗧 𝗪𝗢𝗥𝗞𝗜𝗡𝗚<]
+╠══════════════════╣
+║ ⊱༅༎😼💎༅༎⊱
 
-⭓ 👑 𝗢𝘄𝗻𝗲𝗿      : 『 𝗠𝗶𝗹𝗼𝗻 𝗛𝗮𝘀𝗮𝗻 』
-⭓ 🎂 𝗔𝗴𝗲        : 『 17+』
-⭓ ❤️ 𝗦𝘁𝗮𝘁𝘂𝘀     : 『 silence is my attitude 』
-⭓ 📱 𝗪𝗵𝗮𝘁𝘀𝗔𝗽𝗽  : 『880 1912603270 』
-⭓ 🌐 𝗙𝗮𝗰𝗲𝗯𝗼𝗼𝗸  : 『 আ্ঁসো্ঁ ক্ঁট্ঁ খা্ঁই্ঁ🥵⎯⃝💦⎯⃝🤧⎯⃝🤭 ধ্ঁরা্ঁ প্ঁড়্ঁলে্ঁ-)সোনা 🤌(-𝙅𝙖𝙢𝙖𝙞•|•𝘽𝙤𝙬⎯͢⎯⃝🩵☺️🐰 』
+- আমি ভদ্র, কিন্তু কেউ আমাকে হালকাভাবে নিতে পারবে না ✌️
+- আমি যেটা চাই তা অর্জন করি, আর কারো চাপে কখনো চলি না 💥
 
-╚══════════════════════════╝
+⊱༅༎😼💎༅༎⊱
+╠══════════════════╣
+♡𝗧𝗛𝗔𝗡𝗞𝗦 𝗙𝗢𝗥 𝗨𝗦𝗜𝗡𝗚 𝗠𝗬♡
+♡𝑺𝒊𝒚𝒂𝒎 𝑪𝒉𝒂𝒕 𝑩𝒐𝒕♡
+╚══════════════════╝
 `,
-      attachment: await global.utils.getStreamFromURL(image)
+      attachment: await global.utils.getStreamFromURL(videoLink)
     });
   }
 };
