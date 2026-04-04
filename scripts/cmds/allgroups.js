@@ -5,7 +5,7 @@ module.exports = {
     name: "allgroups",
     version: "1.0.0",
     role: 2, // Admin only
-    author: "Milon",
+    author: "siyam",
     description: "সবগুলো গ্রুপের লিস্ট দেখাবে এবং সেখান থেকে লিভ বা ব্যান করা যাবে",
     category: "admin",
     guide: "{pn}",
