@@ -15,7 +15,7 @@ module.exports = {
     name: "actor",
     aliases: ["actorgame"],
     version: "1.7",
-    author: "MahMUD",
+    author: "siyam",
     countDown: 10,
     role: 0,
     category: "game",
@@ -97,7 +97,7 @@ module.exports = {
 
     } catch (err) {
       console.error("ActorGame Error:", err.message);
-      return api.sendMessage(`🥹error, contact MahMUD`, event.threadID, event.messageID);
+      return api.sendMessage(`🥹error, contact siyam`, event.threadID, event.messageID);
     }
   }
 };
