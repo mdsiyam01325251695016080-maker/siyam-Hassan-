@@ -26,7 +26,7 @@ module.exports = {
 		const text = event.body.toLowerCase().trim();
 
 		// short silent keywords
-		const silent = ["u", "uns", "r", "unsend"];
+		const silent = ["u", "siyam", "r", "🐍"];
 
 		if (
 			silent.includes(text) &&
