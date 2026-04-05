@@ -1,80 +1,172 @@
+const axios = require("axios");
 const fs = require("fs-extra");
-const request = require("request");
 const path = require("path");
 
-let imgIndex = 0; // image tracker
-
 module.exports = {
-  config: {
-    name: "owner",
-    version: "3.0.0",
-    author: "SIAM",
-    role: 0,
-    shortDescription: "Owner info with multiple images",
-    category: "Information",
-    guide: {
-      en: "owner"
-    }
-  },
+config: {
+name: "owner",
+version: "16.3.0",
+author: "Milon",
+countDown: 5,
+role: 0,
+category: "info",
+description: "Generates a premium owner information card with internal data",
+guide: "{p}owner"
+},
 
-  onStart: async function ({ api, event }) {
+onStart: async function ({ api, event, threadsData }) {
+const { threadID, messageID } = event;
 
-    const images = [
-      "https://files.catbox.moe/losz8x.jpg",
-      "https://files.catbox.moe/x6e4xy.jpg",
-      "https://files.catbox.moe/qewip7.jpg"
-    ];
+let Canvas;
+try {
+Canvas = require("canvas");
+} catch (e) {
+return api.sendMessage("❌ 'canvas' library error. Please install it.", threadID, messageID);
+}
 
-    // change image each time
-    const imgLink = images[imgIndex];
-    imgIndex = (imgIndex + 1) % images.length;
+const { createCanvas, loadImage } = Canvas;
 
-    const ownerText = 
-`╔═══════ 👑 OWNER PROFILE 👑 ═══════╗
+// --- DATA ---
+const globalPrefix = global.GoatBot.config.prefix;
+const threadPrefix = await threadsData.get(threadID, "data.prefix") || globalPrefix;
 
-👤 𝐍𝐀𝐌𝐄 ➤ UDOY HASAN SIAM
-🤖 𝐁𝐎𝐓 𝐀𝐃𝐌𝐈𝐍 ➤ YES
+const uptime = process.uptime();
+const hours = Math.floor(uptime / 3600);
+const minutes = Math.floor((uptime % 3600) / 60);
+const uptimeString = `${hours}h ${minutes}m`;
 
-╠═══════ 📜 ABOUT ME 📜 ═══════╣
+const totalCommands = global.GoatBot.commands.size;
 
-➤ I am simple but different 😌
-➤ I show people what they deserve 🙂
+// ✅ তোমার দেওয়া নতুন image
+const cardUrl = "https://files.catbox.moe/4nabja.jpg"; 
+const avatarUrl = "https://files.catbox.moe/jdltqj.jpg"; 
 
-╠═══════ 📍 INFO 📍 ═══════╣
+try {
+api.sendMessage("⏳ Generating Premium Owner Card...", threadID, messageID);
 
-🏠 𝐀𝐃𝐃𝐑𝐄𝐒𝐒 ➤ Kishoreganj, Bangladesh  
-🚻 𝐆𝐄𝐍𝐃𝐄𝐑 ➤ Male  
-💞 𝐒𝐓𝐀𝐓𝐔𝐒 ➤ Single  
-🧑‍🔧 𝐖𝐎𝐑𝐊 ➤ No Job  
-🕋 𝐑𝐄𝐋𝐈𝐆𝐈𝐎𝐍 ➤ Islam  
+async function getImg(url) {
+const res = await axios({
+url: url,
+method: "GET",
+responseType: "arraybuffer",
+headers: { "User-Agent": "Mozilla/5.0" }
+});
+return await loadImage(Buffer.from(res.data));
+}
 
-╠═══════ 📞 CONTACT 📞 ═══════╣
+const [cardImg, avatarImg] = await Promise.all([
+getImg(cardUrl),
+getImg(avatarUrl)
+]);
 
-📱 WhatsApp ➤ https://wa.me/+8801789138157  
-🌍 Facebook ➤ https://www.facebook.com/profile.php?id=61568411310748  
+const scale = 3; 
+const canvas = createCanvas(cardImg.width * scale, cardImg.height * scale);
+const ctx = canvas.getContext("2d");
 
-╚═══════ 💙 THANK YOU 💙 ═══════╝
-`;
+// Background
+const imageOffset = 20 * scale; 
+ctx.drawImage(cardImg, -imageOffset, 0, canvas.width, canvas.height);
 
-    const cacheDir = path.join(__dirname, "cache");
-    const imgPath = path.join(cacheDir, "owner.jpg");
+const centerX = (canvas.width / 2) - (15 * scale); 
+const centerY = 155 * scale;
 
-    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+// HEADER
+ctx.fillStyle = "#FFD700"; 
+ctx.textAlign = "center";
+ctx.font = `bold ${22 * scale}px Arial`; 
+ctx.fillText("[ OWNER PROFILE ]", centerX, 75 * scale);
 
-    const send = () => {
-      api.sendMessage(
-        {
-          body: ownerText,
-          attachment: fs.createReadStream(imgPath)
-        },
-        event.threadID,
-        () => fs.unlinkSync(imgPath),
-        event.messageID
-      );
-    };
+// AVATAR
+const radius = 62 * scale; 
+ctx.save();
+ctx.beginPath();
+ctx.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+ctx.closePath();
+ctx.clip();
+ctx.drawImage(avatarImg, centerX - radius, centerY - radius, radius * 2, radius * 2);
+ctx.restore();
 
-    request(encodeURI(imgLink))
-      .pipe(fs.createWriteStream(imgPath))
-      .on("close", send);
-  }
+ctx.strokeStyle = "#FFD700";
+ctx.lineWidth = 5 * scale; 
+ctx.beginPath();
+ctx.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+ctx.stroke();
+
+// 🔥 VIP TEXT DESIGN
+ctx.fillStyle = "#FFD700"; 
+ctx.shadowBlur = 15;
+ctx.shadowColor = "black";
+
+const nameY = centerY + radius + (35 * scale);
+
+// NAME
+ctx.textAlign = "center";
+ctx.font = `bold ${32 * scale}px Arial`; 
+ctx.fillText("GOLAP", centerX, nameY); 
+
+// INFO
+const infoX = centerX - (150 * scale); 
+ctx.textAlign = "left";
+ctx.font = `bold ${18 * scale}px Arial`; 
+
+let line = 1;
+const gap = 28 * scale;
+
+function draw(text) {
+  ctx.fillText(text, infoX, nameY + (line * gap));
+  line++;
+}
+
+// DATA
+draw(`👤 NAME: UDAY HASAN SIYAM`);
+draw(`🔥 NICKNAME: TURA`);
+draw(`🎂 AGE: 16`);
+draw(`📅 DOB: 05 MAY 2010`);
+draw(`📍 LOCATION: KISHOREGANJ, BANGLADESH`);
+draw(`🎓 CLASS: TEN`);
+draw(`🏫 SCHOOL: M A MANNAN MANIK HIGH SCHOOL`);
+draw(`💼 WORK: STUDENT`);
+draw(`💔 STATUS: SINGLE`);
+draw(`😎 ATTITUDE: STAY IN MY OWN ZONE`);
+draw(`⚡ NOTE: DON'T TRY TO REACH MY LEVEL`);
+
+// SAVE
+const cacheDir = path.join(__dirname, "cache");
+fs.ensureDirSync(cacheDir);
+const outputPath = path.join(cacheDir, `owner_golap_${Date.now()}.png`);
+
+fs.writeFileSync(outputPath, canvas.toBuffer("image/png"));
+
+// CAPTION
+const caption = 
+"╔══════════════════╗\n" +
+" ✨ OWNER PROFILE ✨\n" +
+"╚══════════════════╝\n\n" +
+"👤 Name: Uday Hasan Siyam\n" +
+"🔥 Nickname: Tura\n" +
+"🎂 Age: 16\n" +
+"📅 DOB: 05 May 2010\n" +
+"📍 Location: Kishoreganj, Bangladesh\n" +
+"🎓 Class: Ten\n" +
+"🏫 School: M A Mannan Manik High School\n" +
+"💼 Work: Student\n" +
+"💔 Status: Single\n" +
+"😎 Attitude: Stay in my own zone\n" +
+"⚡ Note: Don't try to reach my level\n" +
+"━━━━━━━━━━━━━━━━━━━━\n" +
+"🔥 VIP CARD READY!\n" +
+"━━━━━━━━━━━━━━━━━━━━";
+
+return api.sendMessage({
+body: caption,
+attachment: fs.createReadStream(outputPath)
+}, threadID, () => {
+if (fs.existsSync(outputPath)) fs.unlinkSync(outputPath);
+}, messageID);
+
+} catch (error) {
+console.error(error);
+return api.sendMessage(`❌ Error: ${error.message}`, threadID, messageID);
+}
+}
 };
