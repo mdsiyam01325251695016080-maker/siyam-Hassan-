@@ -20,7 +20,7 @@ module.exports = {
     if (args[0] && args[0].toLowerCase() === "off") {
       if (activeMurgi.has(event.threadID)) {
         activeMurgi.set(event.threadID, false);
-        return message.reply("🛑 ওকে বস মাগী কে আর চুদবো না.");
+        return message.reply("🛑 ওকে সিয়াম বস মাগী কে আর চুদবো না.");
       } else {
         return message.reply("⚠️ Murgi mode is not running.");
       }
