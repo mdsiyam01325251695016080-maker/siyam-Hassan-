@@ -1,68 +1,79 @@
 const axios = require("axios");
-const fs = require("fs-extra");
+const fs = require("fs");
 const path = require("path");
 
 module.exports = {
-config: {
-name: "text_voice",
-version: "1.0.5",
-author: "siyam",
-countDown: 1, // সময় কমিয়ে ১ সেকেন্ড করা হলো
-role: 0,
-shortDescription: "Ultra Fast Voice Reply",
-longDescription: "Sends specific voice messages instantly using local cache",
-category: "system"
-},
+  config: {
+    name: "text_voice",
+    version: "1.0.0",
+    author: "MOHAMMAD AKASH",
+    countDown: 5,
+    role: 0,
+    shortDescription: "নির্দিষ্ট টেক্সটে ভয়েস রিপ্লাই 😍",
+    longDescription: "তুমি যদি নির্দিষ্ট কিছু টেক্সট পাঠাও, তাহলে কিউট মেয়ের ভয়েস প্লে করবে 😍",
+    category: "noprefix",
+  },
 
-onStart: async function () {},
+  onChat: async function ({ event, message }) {
+    const { body } = event;
+    if (!body) return;
 
-onChat: async function ({ event, message }) {
-if (!event.body) return;
+    const textAudioMap = {
+      "i love you": "https://files.catbox.moe/npy7kl.mp3",
+      "matha beta": "https://files.catbox.moe/5rdtc6.mp3",
 
-const input = event.body.toLowerCase().trim();
+      // 🆕 তোমার দেওয়া সেটগুলো (clean করা)
+      "magi": "https://files.catbox.moe/ecgpak.mp4",
+      "মাগি": "https://files.catbox.moe/ecgpak.mp4",
+      "খানকি": "https://files.catbox.moe/ecgpak.mp4",
+      "khanki": "https://files.catbox.moe/ecgpak.mp4",
 
-// --- কি-ওয়ার্ড এবং লিংক ---
-const voiceMap = {
-"magi": "https://files.catbox.moe/ecgpak.mp4",
-"Magi": "https://files.catbox.moe/ecgpak.mp4",
-"মাগি": "https://files.catbox.moe/ecgpak.mp4",
-"খানকি": "https://files.catbox.moe/ecgpak.mp4",
-"khanki": "https://files.catbox.moe/ecgpak.mp4",
-"Khanki": "https://files.catbox.moe/ecgpak.mp4",
-"SIYAM": "https://files.catbox.moe/hd993x.mp3",
-"siyam": "https://files.catbox.moe/hd993x.mp3",
-"সিয়াম ভাই": "https://files.catbox.moe/hd993x.mp3",
-"সিয়াম": "https://files.catbox.moe/hd993x.mp3",
-"Nijhum ": "https://files.catbox.moe/3u6shs.mp3",
-"Nijhum": "https://files.catbox.moe/3u6shs.mp3",
-"Niju": "https://files.catbox.moe/3u6shs.mp3",
-"নিঝুম": "https://files.catbox.moe/3u6shs.mp3",
-};
+      "siyam": "https://files.catbox.moe/hd993x.mp3",
+      "সিয়াম ভাই": "https://files.catbox.moe/hd993x.mp3",
+      "সিয়াম": "https://files.catbox.moe/hd993x.mp3",
 
-if (voiceMap[input]) {
-const audioUrl = voiceMap[input];
-const cacheDir = path.join(__dirname, "cache", "voices");
-fs.ensureDirSync(cacheDir);
+      "nijhum": "https://files.catbox.moe/3u6shs.mp3",
+      "niju": "https://files.catbox.moe/3u6shs.mp3",
+      "নিঝুম": "https://files.catbox.moe/3u6shs.mp3"
+    };
 
-// ফাইলের নাম কি-ওয়ার্ড অনুযায়ী সেভ হবে যাতে বারবার ডাউনলোড না লাগে
-const fileName = `${Buffer.from(input).toString('hex')}.mp3`;
-const filePath = path.join(cacheDir, fileName);
+    const key = body.trim().toLowerCase();
+    const audioUrl = textAudioMap[key];
+    if (!audioUrl) return;
 
-try {
-// যদি ফাইলটি আগে থেকেই ডাউনলোড করা থাকে, তবে সরাসরি পাঠিয়ে দিবে
-if (fs.existsSync(filePath)) {
-return await message.reply({ attachment: fs.createReadStream(filePath) });
-}
+    const cacheDir = path.join(__dirname, "cache");
+    if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
 
-// ফাইল না থাকলে ডাউনলোড করবে (শুধু প্রথমবার)
-const response = await axios.get(audioUrl, { responseType: "arraybuffer" });
-fs.writeFileSync(filePath, Buffer.from(response.data));
+    const filePath = path.join(cacheDir, `${encodeURIComponent(key)}.mp3`);
 
-await message.reply({ attachment: fs.createReadStream(filePath) });
+    try {
+      const response = await axios({
+        method: "GET",
+        url: audioUrl,
+        responseType: "stream",
+      });
 
-} catch (error) {
-console.error("Error sending voice:", error);
-}
-}
-}
+      const writer = fs.createWriteStream(filePath);
+      response.data.pipe(writer);
+
+      writer.on("finish", async () => {
+        await message.reply({
+          attachment: fs.createReadStream(filePath),
+        });
+        fs.unlink(filePath, (err) => {
+          if (err) console.error("Error deleting file:", err);
+        });
+      });
+
+      writer.on("error", (err) => {
+        console.error("Error writing file:", err);
+        message.reply("ভয়েস প্লে হয়নি 😅");
+      });
+    } catch (error) {
+      console.error("Error downloading audio:", error);
+      message.reply("ভয়েস প্লে হয়নি 😅");
+    }
+  },
+
+  onStart: async function () {},
 };
