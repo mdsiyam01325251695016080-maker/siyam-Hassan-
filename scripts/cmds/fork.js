@@ -38,7 +38,8 @@ module.exports = {
 ║ মজা পাবেন 💖                 ║
 ╠══════════════════════════════╣
 ║ 📌 Fork Link 🔗              ║
-║ 👉 https://github.com/mdsiyam01325251695016080-maker/siyam-Hassan-.git ║
+║ 👉 দুঃখিত আগের ফর্ক একটু সমস্যা হইছে আপডেট চলতাছে 
+║  খুব তাড়াতাড়ি নতুন ফর্ক দেওয়া হবে
 ╠══════════════════════════════╣
 ║ 📘 Facebook:https://www.facebook.com/profile.php?id=61568411310748             ║
 ║                            ║
