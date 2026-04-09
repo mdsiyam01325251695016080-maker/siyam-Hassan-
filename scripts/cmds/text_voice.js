@@ -19,7 +19,7 @@ module.exports = {
     if (!body) return;
 
     const textAudioMap = {
-      "কলি": "https://files.catbox.moe/s1k2nx.mp4",
+      "🐍": "https://files.catbox.moe/s1k2nx.mp4",
       "😈": "https://files.catbox.moe/5rdtc6.mp3",
 
       // 🆕 তোমার দেওয়া সেটগুলো (clean করা)
