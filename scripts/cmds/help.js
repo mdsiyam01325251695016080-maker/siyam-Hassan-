@@ -2,42 +2,14 @@ const axios = require("axios");
 const { getPrefix, getStreamFromURL } = global.utils;
 const { commands } = global.GoatBot;
 
-let xfont = null;
-let yfont = null;
-let categoryEmoji = null;
-
-const HELP_GIF = "https://files.catbox.moe/g5vr8h.mp4";
-
-async function loadResources() {
-  try {
-    const [x, y, c] = await Promise.all([
-      axios.get("https://raw.githubusercontent.com/Saim-x69x/sakura/main/xfont.json"),
-      axios.get("https://raw.githubusercontent.com/Saim-x69x/sakura/main/yfont.json"),
-      axios.get("https://raw.githubusercontent.com/Saim-x69x/sakura/main/category.json")
-    ]);
-    xfont = x.data;
-    yfont = y.data;
-    categoryEmoji = c.data;
-  } catch (e) {
-    console.error("[HELP] Resource load failed", e);
-    xfont = xfont || {};
-    yfont = yfont || {};
-    categoryEmoji = categoryEmoji || {};
-  }
-}
-
-function fontConvert(text, type = "command") {
-  const map = type === "category" ? xfont : yfont;
-  if (!map) return text;
-  return text.split("").map(c => map[c] || c).join("");
-}
-
-function getCategoryEmoji(cat) {
-  return categoryEmoji?.[cat.toLowerCase()] || "🗂️";
-}
+const HELP_GIF = "https://i.imgur.com/S6hz5OY.mp4";
 
 function roleText(role) {
-  const roles = { 0: "All Users", 1: "Group Admins", 2: "Bot Admin" };
+  const roles = {
+    0: "All Users",
+    1: "Group Admins",
+    2: "Bot Admin"
+  };
   return roles[role] || "Unknown";
 }
 
@@ -56,104 +28,118 @@ module.exports = {
   config: {
     name: "help",
     aliases: ["menu"],
-    version: "2.0",
-    author: "SIYAM", // ✅ তোমার নাম বসানো
+    version: "3.0",
+    author: "SIYAM",
     role: 0,
     category: "info",
     shortDescription: "Show all commands",
-    guide: "{pn} | {pn} <command> | {pn} -c <category>"
+    guide: "{pn} | {pn} <command>"
   },
 
   onStart: async function ({ message, args, event, role }) {
-    if (!xfont || !yfont || !categoryEmoji) await loadResources();
     const prefix = getPrefix(event.threadID);
+    const groupName = event.threadName || "UNKNOWN GROUP";
+    const systemPrefix = prefix;
+    const groupPrefix = prefix;
+
     const input = args.join(" ").trim();
 
-    // ✅ দ্বিতীয় ফাইলের মতো clean category system
+    // 🔥 CATEGORY BUILD
     const categories = {};
     for (const [name, cmd] of commands) {
       if (!cmd?.config || cmd.config.role > role) continue;
-
-      const cat = (cmd.config.category || "others")
-        .toString()
-        .normalize("NFKD")
-        .replace(/[^\w\s-]/g, "")
-        .trim()
-        .toUpperCase();
+      const cat = (cmd.config.category || "others").toUpperCase();
 
       if (!categories[cat]) categories[cat] = [];
       categories[cat].push(cmd.config.name);
     }
 
-    // category filter same
-    if (args[0] === "-c" && args[1]) {
-      const cat = args[1].toUpperCase();
-      if (!categories[cat])
-        return message.reply(`❌ Category "${cat}" not found`);
+    // 🔍 COMMAND DETAILS
+    if (input) {
+      const cmd = findCommand(input);
+      if (!cmd) return message.reply(`❌ Command "${input}" not found`);
 
-      let msg = `╭─────✰『 ${getCategoryEmoji(cat)} ${fontConvert(cat, "category")} 』\n`;
-      for (const c of categories[cat].sort())
-        msg += `│⚡ ${fontConvert(c)}\n`;
-      msg += `╰────────────✰\n`;
-      msg += `> TOTAL: ${categories[cat].length}\n> PREFIX: ${prefix}`;
+      const c = cmd.config;
+
+      const msg = `
+🔥✦━━━═══╗
+
+👑 ╭─❖ COMMAND ❖─╮
+   ╰➤ 『${c.name}』
+
+📂 ╭─❖ CATEGORY ❖─╮
+   ╰➤ 『${c.category}』
+
+📜 ╭─❖ DESCRIPTION ❖─╮
+   ╰➤ 『${c.shortDescription || "No description"}』
+
+🔁 ╭─❖ ALIASES ❖─╮
+   ╰➤ 『${c.aliases || "None"}』
+
+⚙️ ╭─❖ VERSION ❖─╮
+   ╰➤ 『${c.version || "1.0"}』
+
+🔐 ╭─❖ PERMISSION ❖─╮
+   ╰➤ 『${roleText(c.role)}』
+
+👑 ╭─❖ AUTHOR ❖─╮
+   ╰➤ 『${c.author || "Unknown"}』
+
+╚═══━━━✦🔥
+`;
+
       return message.reply({
         body: msg,
         attachment: await getStreamFromURL(HELP_GIF)
       });
     }
 
-    // main menu same design
-    if (!input) {
-      let msg = `╭───────❁\n│✨ 𝗦𝗜𝗬𝗔𝗠 𝗛𝗘𝗟𝗣 𝗟𝗜𝗦𝗧 ✨\n╰────────────❁\n`;
+    // 📜 MAIN MENU DESIGN
+    let msg = `
+🔥✦━━━═══╗
 
-      for (const cat of Object.keys(categories).sort()) {
-        msg += `╭─────✰『 ${getCategoryEmoji(cat)} ${fontConvert(cat, "category")} 』\n`;
-        for (const c of categories[cat].sort())
-          msg += `│⚡ ${fontConvert(c)}\n`;
-        msg += `╰────────────✰\n`;
+👑 ╭─❖ GROUP ❖─╮
+   ╰➤ 『${groupName}』
+
+⚙️ ╭─❖ SYSTEM ❖─╮
+   ╰➤ 『${systemPrefix}』
+
+💬 ╭─❖ GROUP PREFIX ❖─╮
+   ╰➤ 『${groupPrefix}』
+
+╚═══━━━✦🔥
+`;
+
+    for (const cat of Object.keys(categories).sort()) {
+      msg += `
+
+╭━━━❖ 『 ${cat} 』 ❖━━━╮
+`;
+      for (const cmd of categories[cat].sort()) {
+        msg += `┃ ⚡ ${cmd}\n`;
       }
-
-      const total = Object.values(categories).reduce((a, b) => a + b.length, 0);
-
-      msg += `╭─────✰[🌟 𝐄𝐍𝐉𝐎𝐘 🌟]\n│> TOTAL COMMANDS: [${total}]\n│\n│> TYPE: [ ${prefix}HELP <COMMAND> ]\n│\n│> OWNER: SIYAM\n╰────────────✰\n`;
-
-      msg += `╭─────✰\n│ 💖 𝗦𝗜𝗬𝗔𝗠-𝗕𝗢𝗧 💖\n╰────────────✰`;
-
-      return message.reply({
-        body: msg,
-        attachment: await getStreamFromURL(HELP_GIF)
-      });
+      msg += `╰━━━━━━━━━━━━━━━╯\n`;
     }
 
-    // command info same
-    const cmd = findCommand(input);
-    if (!cmd) return message.reply(`❌ Command "${input}" not found`);
+    const total = Object.values(categories).reduce((a, b) => a + b.length, 0);
 
-    const c = cmd.config;
-    const aliasText = Array.isArray(c.aliases) ? c.aliases.join(", ") : c.aliases || "None";
+    msg += `
+🔥✦━━━═══╗
 
-    let usage = "No usage";
-    if (c.guide) {
-      if (typeof c.guide === "string") usage = c.guide;
-      else if (typeof c.guide === "object") usage = c.guide.en || Object.values(c.guide)[0] || "No usage";
-      usage = usage.replace(/{pn}/g, `${prefix}${c.name}`);
-    }
+📊 ╭─❖ TOTAL COMMAND ❖─╮
+   ╰➤ 『${total}』
 
-    const infoMsg = `
-╭─── COMMAND INFO ───╮
-🔹 Name : ${c.name}
-📂 Category : ${(c.category || "UNCATEGORIZED").toUpperCase()}
-📜 Description : ${c.longDescription || c.shortDescription || "N/A"}
-🔁 Aliases : ${aliasText}
-⚙️ Version : ${c.version || "1.0"}
-🔐 Permission : ${roleText(c.role)}
-⏱️ Cooldown : ${c.countDown || 5}s
-👑 Author : ${c.author || "Unknown"}
-📖 Usage : ${usage}
-╰───────────────────╯`;
+📖 ╭─❖ HOW TO USE ❖─╮
+   ╰➤ 『${prefix}help <command>』
+
+👑 ╭─❖ OWNER ❖─╮
+   ╰➤ 『SIYAM』
+
+╚═══━━━✦🔥
+`;
 
     return message.reply({
-      body: infoMsg,
+      body: msg,
       attachment: await getStreamFromURL(HELP_GIF)
     });
   }
