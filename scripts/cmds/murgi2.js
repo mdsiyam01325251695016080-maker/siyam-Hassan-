@@ -5,10 +5,10 @@ const activeMurgi = new Map();
 
 module.exports = {
   config: {
-    name: "murg",
+    name: "murgi2",
     version: "1.1.0",
     role: 2,
-    author: "Akash Edit",
+    author: " Siyam_YT ",
     description: "Loop bad word messages until stopped",
     category: "fun",
     usages: "@mention | off",
@@ -20,7 +20,7 @@ module.exports = {
     if (args[0] && args[0].toLowerCase() === "off") {
       if (activeMurgi.has(event.threadID)) {
         activeMurgi.set(event.threadID, false);
-        return message.reply("🛑 Murgi mode stopped.");
+        return message.reply("🛑 ওকে সিয়াম বস ছেলেকে আরে চুদব না.");
       } else {
         return message.reply("⚠️ Murgi mode is not running.");
       }
@@ -28,7 +28,7 @@ module.exports = {
 
     const mention = Object.keys(event.mentions)[0];
     if (!mention) {
-      return message.reply("Please @mention a target first!");
+      return message.reply("Please @কোন মাগির পুত বস সিয়াম কে গালি দিসে মেনশন করো 🖕");
     }
 
     const name = event.mentions[mention];
@@ -78,4 +78,26 @@ module.exports = {
         "😹_____ তোর কচি বোনকে বিয়ে দিবি রেন্ডি মাগির বাচ্চা!👅 ",
     ];
 
-    activeMurgi.set(event.threadID,
+    activeMurgi.set(event.threadID, true);
+    message.reply("🔥 🙄মাগির পুত তোর তো সাহস কম না 🥵🤬 🤢এইবার বস সিয়াম এর চুদা ল🤮🖕.");
+
+    try {
+      while (activeMurgi.get(event.threadID)) {
+        for (const msg of messages) {
+          if (!activeMurgi.get(event.threadID)) break;
+
+          await delay(2500);
+          message.reply({
+            body: `${name}\n${msg}`,
+            mentions: arraytag
+          });
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      activeMurgi.delete(event.threadID);
+      message.reply("Something went wrong!");
+    }
+  }
+};
+      
