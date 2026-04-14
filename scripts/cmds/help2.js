@@ -1,104 +1,154 @@
-const fs = require("fs-extra");
 const axios = require("axios");
-const path = require("path");
-const { getPrefix } = global.utils;
-const { commands, aliases } = global.GoatBot;
 
 module.exports = {
   config: {
     name: "help2",
-    version: "1.18",
+    version: "3.0.0",
     author: "UDAY HASAN SIYAM",
     countDown: 5,
     role: 0,
-    shortDescription: { en: "View command usage and list all commands directly" },
-    longDescription: { en: "View command usage and list all commands directly" },
+    shortDescription: {
+      en: "Show all commands"
+    },
+    longDescription: {
+      en: "Display command list and usage"
+    },
     category: "info",
-    guide: { en: "{pn} / help cmdName" },
-    priority: 1,
+    guide: {
+      en: "{pn}help2 / {pn}help2 <command>"
+    }
   },
 
-  onStart: async function ({ message, args, event, threadsData, role }) {
-    const { threadID } = event;
-    const prefix = getPrefix(threadID);
+  onStart: async function ({ message, args, event, role }) {
+    const prefix = global.GoatBot.config.prefix;
+    const groupName = event.threadName || "UNKNOWN GROUP";
 
-    // New media links
     const mediaLinks = [
       "https://files.catbox.moe/fiy6vj.gif",
       "https://files.catbox.moe/a13udh.jpg",
       "https://files.catbox.moe/41hfau.jpg"
     ];
 
+    const { commands, aliases } = global.GoatBot;
+
+    // 🔥 MAIN MENU
     if (!args[0]) {
-      // Group commands by category (use second file's design)
+      let msg = `
+🔥✦━━━═══╗
+
+👑 ╭─❖ GROUP ❖─╮
+   ╰➤ 『${groupName}』
+
+⚙️ ╭─❖ SYSTEM PREFIX ❖─╮
+   ╰➤ 『${prefix}』
+
+💬 ╭─❖ HELP COMMAND ❖─╮
+   ╰➤ 『${prefix}help2』
+
+╚═══━━━✦🔥
+`;
+
       const categories = {};
 
-      for (const [name, value] of commands) {
-        if (!value.config || value.config.role > role) continue;
-        const category = (value.config.category || "UNCATEGORIZED").toUpperCase();
+      for (const [name, cmd] of commands) {
+        if (!cmd.config || cmd.config.role > role) continue;
+
+        const category = (cmd.config.category || "OTHER").toUpperCase();
         if (!categories[category]) categories[category] = [];
+
         categories[category].push(name);
       }
 
-      let msg = `╭───────❁\n│✨ 𝗨𝗗𝗔𝗬 𝗛𝗔𝗦𝗔𝗡 𝗦𝗜𝗬𝗔𝗠 𝗛𝗘𝗟𝗣 𝗟𝗜𝗦𝗧 ✨\n╰────────────❁\n`;
-
       for (const cat of Object.keys(categories).sort()) {
-        msg += `╭─────✰『  🗂️ ${cat} 』\n`;
-        for (const c of categories[cat].sort()) {
-          msg += `│⚡ ${c}\n`;
+        msg += `
+╭━━━❖ 『 ${cat} 』 ❖━━━╮
+`;
+        for (const name of categories[cat].sort()) {
+          msg += `┃ ⚡ ${name}\n`;
         }
-        msg += `╰────────────✰\n`;
+        msg += `╰━━━━━━━━━━━━━━━╯\n`;
       }
 
-      const totalCommands = Object.values(categories).reduce((a, b) => a + b.length, 0);
-      msg += `╭─────✰[🌟 𝐄𝐍𝐉𝐎𝐘 🌟]\n│> TOTAL COMMANDS: [${totalCommands}]\n│\n│> TYPE: [ ${prefix}HELP <COMMAND> ]\n│\n│> FB.LINK: [https://www.facebook.com/MR.FARHAN.420]\n╰────────────✰\n`;
-      msg += `\n╭─────✰\n│ 💖 𝗨𝗗𝗔𝗬 𝗛𝗔𝗦𝗔𝗡 𝗦𝗜𝗬𝗔𝗠 💖\n╰────────────✰`; 
+      const total = Object.values(categories).reduce((a, b) => a + b.length, 0);
 
-      const mediaLink = mediaLinks[Math.floor(Math.random() * mediaLinks.length)];
-      const stream = await axios.get(mediaLink, { responseType: "stream" }).then(res => res.data);
+      msg += `
+🔥✦━━━═══╗
 
-      return message.reply({
-        body: msg,
-        attachment: stream
-      });
+📊 ╭─❖ TOTAL COMMAND ❖─╮
+   ╰➤ 『${total}』
 
-    } else {
-      // Specific command info
-      const commandName = args[0].toLowerCase();
-      const command = commands.get(commandName) || commands.get(aliases.get(commandName));
+📖 ╭─❖ HOW TO USE ❖─╮
+   ╰➤ 『${prefix}help2 <command>』
 
-      if (!command) return message.reply(`Command "${commandName}" not found.`);
+🌐 ╭─❖ FACEBOOK ❖─╮
+   ╰➤ 『MR.FARHAN.420』
 
-      const configCommand = command.config;
-      const roleText = roleTextToString(configCommand.role);
-      const author = "UDAY HASAN SIYAM";
-      const longDescription = configCommand.longDescription?.en || "No description";
-      const guideBody = configCommand.guide?.en || "No guide available.";
-      const usage = guideBody.replace(/{p}/g, prefix).replace(/{n}/g, configCommand.name);
+👑 ╭─❖ OWNER ❖─╮
+   ╰➤ 『UDAY HASAN SIYAM』
 
-      const response = `
-╭───⊙
-│ 🔹 Command: ${configCommand.name}
-├── INFO
-│ 📝 Description: ${longDescription}
-│ 👑 Author: ${author}
-│ ⚙ Guide: ${usage}
-├── USAGE
-│ 🔯 Version: ${configCommand.version || "1.0"}
-│ ♻ Role: ${roleText}
-╰────────────⊙`;
+╚═══━━━✦🔥
+`;
 
-      return message.reply(response);
+      try {
+        const randomLink = mediaLinks[Math.floor(Math.random() * mediaLinks.length)];
+        const stream = await axios.get(randomLink, { responseType: "stream" }).then(res => res.data);
+
+        return message.reply({
+          body: msg,
+          attachment: stream
+        });
+
+      } catch (e) {
+        return message.reply(msg);
+      }
     }
-  },
-};
 
-// Helper function to convert role number to string
-function roleTextToString(roleText) {
-  switch (roleText) {
-    case 0: return "0 (All users)";
-    case 1: return "1 (Group administrators)";
-    case 2: return "2 (Admin bot)";
-    default: return "Unknown role";
+    // 🔍 COMMAND INFO
+    const cmdName = args[0].toLowerCase();
+    const cmd = commands.get(cmdName) || commands.get(aliases.get(cmdName));
+
+    if (!cmd) {
+      return message.reply(`❌ Command "${cmdName}" not found`);
+    }
+
+    const cfg = cmd.config;
+
+    const roleText =
+      cfg.role == 0 ? "All Users" :
+      cfg.role == 1 ? "Group Admin" :
+      cfg.role == 2 ? "Bot Admin" : "Unknown";
+
+    const usage = (cfg.guide?.en || "No guide")
+      .replace(/{pn}/g, prefix)
+      .replace(/{n}/g, cfg.name);
+
+    const info = `
+🔥✦━━━═══╗
+
+👑 ╭─❖ COMMAND ❖─╮
+   ╰➤ 『${cfg.name}』
+
+📂 ╭─❖ CATEGORY ❖─╮
+   ╰➤ 『${cfg.category}』
+
+📜 ╭─❖ DESCRIPTION ❖─╮
+   ╰➤ 『${cfg.longDescription?.en || "No description"}』
+
+⚙️ ╭─❖ GUIDE ❖─╮
+   ╰➤ 『${usage}』
+
+🔐 ╭─❖ PERMISSION ❖─╮
+   ╰➤ 『${roleText}』
+
+🔄 ╭─❖ VERSION ❖─╮
+   ╰➤ 『${cfg.version}』
+
+👑 ╭─❖ AUTHOR ❖─╮
+   ╰➤ 『${cfg.author}』
+
+╚═══━━━✦🔥
+`;
+
+    return message.reply(info);
   }
-  }
+};
