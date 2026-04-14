@@ -6,7 +6,7 @@ module.exports = {
   config: {
     name: "emoji_voice",
     version: "2.0.2",
-    author: "MOHAMMAD AKASH",
+    author: "亗 SIYAM HASAN 亗",
     countDown: 5,
     role: 0,
     shortDescription: "Sends a cute girl's voice when an emoji is used 😍",
@@ -97,7 +97,7 @@ longDescription: "One emoji triggers multiple voices, sent randomly 😘",
       });
     } catch (error) {
       console.error(error);
-      message.reply("ইমোজি দিয়ে লাভ নাই 😒\nযাও মুড়ি খাও জান 😘");
+      message.reply("ইমোজি দিয়ে লাভ নাই 😒\nযাও বস সিয়াম কে কল দাও 😘 🫰+8801789138157");
     }
   }
 };
