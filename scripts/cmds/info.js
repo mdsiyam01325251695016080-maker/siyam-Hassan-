@@ -38,7 +38,7 @@ module.exports = {
     const prefix = global.utils.getPrefix(event.threadID);
     const groupName = event.threadName || "Unknown Group";
 
-    const videoLink = "https://i.imgur.com/kS6QCVv.mp4";
+    const videoLink = "https://files.catbox.moe/g5vr8h.mp4";
 
     return message.reply({
       body: `
