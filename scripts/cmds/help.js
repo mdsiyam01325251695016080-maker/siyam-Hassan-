@@ -2,7 +2,7 @@ const axios = require("axios");
 const { getPrefix, getStreamFromURL } = global.utils;
 const { commands } = global.GoatBot;
 
-const HELP_GIF = "https://i.imgur.com/S6hz5OY.mp4";
+const HELP_GIF = "https://files.catbox.moe/g5vr8h.mp4";
 
 function roleText(role) {
   const roles = {
