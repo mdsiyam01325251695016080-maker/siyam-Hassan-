@@ -17,7 +17,7 @@ guide: { en: "file [commandName]" }
 // Handles no prefix functionality
 onChat: async function ({ api, event, message }) {
 const { body, senderID } = event;
-const adminUID = "61568411310748"; // Authorized UID
+const adminUID = "61568690910164"; // Authorized UID
 
 if (!body) return;
 
